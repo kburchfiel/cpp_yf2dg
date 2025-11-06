@@ -1,4 +1,4 @@
-This project relies heavily on [J-Dax's C++ code for the Your First 2D Game tutorial]((https://github.com/j-dax/gd-cpp/tree/main)) for Godot 4.3. That code has been released under the BSD 3-Clause license:
+* This project relies heavily on [J-Dax's C++ code for the Your First 2D Game tutorial]((https://github.com/j-dax/gd-cpp/tree/main)) for Godot 4.3. That code has been released under the BSD 3-Clause license:
 
 Copyright 2025 Matthew Piazza
 
@@ -27,6 +27,8 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS “AS IS” 
 	(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 	SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-  The project also makes use of [code from Godot's own documentation](https://github.com/godotengine/godot-docs/tree/master?tab=License-1-ov-file#readme). This documentation has been released under the Creative Commons 3.0 Attribution license.
+* The project also makes use of [code from Godot's own documentation](https://github.com/godotengine/godot-docs/tree/master?tab=License-1-ov-file#readme). This documentation has been released under the Creative Commons 3.0 Attribution license.
 
-  Any contributions that I make to this project are released under the MIT license.
+* The project also contains code from the [godot-cpp-template](https://github.com/godotengine/godot-cpp-template?tab=Unlicense-1-ov-file#readme) repository, which has been released under the Unlicense license.
+
+* Any contributions that I make to this project are released under the MIT license.
