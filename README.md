@@ -1,4 +1,4 @@
-## Attempt to get J-Dax's Godot 4.3 Your First 2D Game code working within Godot 4.5
+## Attempt to get J-Dax's Godot 4.3 Your First 2D Game C++ code working within Godot 4.5
 
 (A work in progress)
 
