@@ -1,0 +1,9 @@
+.vscode
+godot-cpp/**
+**.os
+.godot
+project/art
+project/fonts
+**.so
+**.uid
+**.dblite
