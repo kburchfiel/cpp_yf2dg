@@ -66,7 +66,8 @@ void Player::_process(double delta) {
         velocity.x += 1;
     }
 
-    auto animated_sprite_2d = Node::get_node<AnimatedSprite2D>("AnimatedSprite2D");
+    auto animated_sprite_2d = Node::get_node<AnimatedSprite2D>(
+        "AnimatedSprite2D");
     if (velocity.x != 0) {
         animated_sprite_2d->set_animation("walk");
         animated_sprite_2d->set_flip_v(false);
@@ -94,7 +95,8 @@ void Player::_process(double delta) {
 
 // void Player::_on_body_entered(Node2D *node) {
 //     hide();
-//     get_node<CollisionShape2D>("CollisionShape2D")->set_deferred(StringName("set_disabled"), true);
+//     get_node<CollisionShape2D>("CollisionShape2D")->set_deferred(
+//         StringName("set_disabled"), true);
 //     // let listeners respond to hit
 //     emit_signal("player_hit");
-// }
+//}
