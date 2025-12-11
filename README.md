@@ -4,22 +4,24 @@
 
 Practically all of the code in this repository comes from one of the following sources:
 
-1. [J-Dax's gd-cpp project for Godot 4.3](https://github.com/j-dax/gd-cpp/tree/main)
-2. Various Godot documentation files, such as [Getting started with godot-cpp](https://docs.godotengine.org/en/stable/tutorials/scripting/cpp/gdextension_cpp_example.html)
-3. The [godot-cpp-template](https://github.com/godotengine/godot-cpp-template?tab=Unlicense-1-ov-file#readme) repository
-
 
 ## Guide to completing the Your First 2D Game (YF2DG) project with C++ Code
 
 (Also a work in progress!)
 
-Note: this document is based heavily on: 
+Note: this document, along with almost practically all of the code in this repository, is based heavily on: 
 
 1. [J-Dax's C++ code for Version 4.3 of the YF2DG project](https://github.com/j-dax/gd-cpp) (released under the BSD-3 license)
 
-2. [The official YFD2G guide for Godot 4.5](https://docs.godotengine.org/en/4.5/getting_started/first_2d_game/index.html)
+1. [The official YFD2G guide for Godot 4.5](https://docs.godotengine.org/en/4.5/getting_started/first_2d_game/index.html)
 
-3. The [Getting started](https://docs.godotengine.org/en/4.5/tutorials/scripting/cpp/gdextension_cpp_example.html) page within Godot's godot-cpp documentation.
+1. The [Getting started](https://docs.godotengine.org/en/4.5/tutorials/scripting/cpp/gdextension_cpp_example.html) page within Godot's godot-cpp documentation.
+
+1. [Version 3.5 of the YF2DG project](https://docs.godotengine.org/en/3.5/getting_started/first_2d_game/03.coding_the_player.html). (This was the most recent version of the 'Your First 2D Game documentation' to include C++ code examples.)
+
+1. The [godot-cpp-template](https://github.com/godotengine/godot-cpp-template?tab=Unlicense-1-ov-file#readme) repository
+
+
 
 ## Steps:
 
@@ -107,8 +109,6 @@ Note: this document is based heavily on:
         // workaround available: in _ready
         auto im = InputMap::get_singleton();
         im->load_from_project_settings();
-
-        start(get_position());
 
         screen_size = get_viewport_rect().size;
     }
@@ -318,7 +318,7 @@ Note: this document is based heavily on:
 
     ```
 
-1. Open a terminal; navigate to your root folder; and run `scons platform=linux` (replacing the OS with your own OS as needed).
+1. Open a terminal; navigate to your root folder (i.e. the one that contains your 'godot-cpp', 'src', and 'project' folders); and run `scons platform=linux` (replacing the OS with your own OS as needed).
 
 1. Navigate to your new /project/bin folder; create a new file named gdexample.gdextension; and then add the following code to it:
 
@@ -364,12 +364,106 @@ Note: this document is based heavily on:
 
     ```
 
-1. Go back into the Godot editor. [You may need to exit out of it and reload it if it was already open--I'm not sure.] Click on your existing Player node; choose 'Change type'; search for 'Player'; and then click Change. This will replace your Area2D node with your C++-based Player class.
+1. Go back into the Godot editor. (You may need to exit out of it and reload it if it was already open.) Click on your existing Player node; choose 'Change type'; search for 'Player'; and then click Change. This will replace your Area2D node with your C++-based Player class.
 
     (Alternatively, you could probably have added a new Player node to your scene, *then* completed all of the Player setup tasks described earlier in the Your First 2D Game documentation.)
 
 1. Hit play on the top right to test out the scene. You should be able to move the player around with your keyboard.
 
-## Here with editing
+1. When you get to the first code block within the 'Choosing animations' section of the 'Coding the player' documentation, go to the following line within your player.cpp code:
 
-(Next steps: Continue writing out the C++ code for the 'Choosing animations' step (https://docs.godotengine.org/en/4.5/getting_started/first_2d_game/03.coding_the_player.html#choosing-animations). In this case, you'll probably want to move your existing C++ code for selecting animations and flipping the character to this section in order to align with the GDScript example.)
+    ```
+    auto animated_sprite_2d = Node::get_node<AnimatedSprite2D>(
+            "AnimatedSprite2D");
+    ```
+
+    Next, add the following code directly below this line:
+
+    ```       
+        if (velocity.x != 0) {
+            animated_sprite_2d->set_animation("walk");
+            animated_sprite_2d->set_flip_v(false);
+            animated_sprite_2d->set_flip_h(velocity.x < 0);
+        } else if (velocity.y != 0) {
+            animated_sprite_2d->set_animation("up");
+            animated_sprite_2d->set_flip_v(velocity.y > 0);
+        }
+    ```
+
+1. Rerun `scons platform=(your_os)` within your terminal. (On Linux, and possibly other operating systems also, you can quickly do so by pressing Up Arrow on your keyboard followed by Enter--assuming that this was your most recent command.) Next, play the scene within Godot to confirm that the player's direction and animations now align better than they did previously. 
+
+
+1. Next, when you get to the last code block within the 'Choosing animations' section, add the following to the end of your `void Player::_ready()` function within player.cpp:
+
+    ```
+    // You may find it helpful to comment out the following line
+    // at times for debugging/testing purposes, especially 
+    // earlier in the tutorial.
+    hide();
+    ```
+
+    (The player will no longer be visible, as we'll want the player only appear after the completion of a countdown that we'll add in later on.)
+
+1. For the first code block within the 'Preparing for collisions' section, add the following code to the bottom of your `Player::_bind_methods()` function within player.cpp:
+
+    ```
+    // The signal to emit when the player collides with a Mob
+        ADD_SIGNAL(MethodInfo("player_hit"));
+    ```
+
+1. After rerunning `scons platform=(your_os)`, exit and relaunch Godot. You should now see a `player_hit()` signal within a new Player entry at the top of your Signals panel. (See the official documentation for more details.)
+
+1. You can skip the Connect --> Connect a Signal entry. Instead, navigate down to the following code block. Then, within player.h, add the following line right after `int get_speed() const;`:
+
+    ```
+    void _on_body_entered(Node2D *node);
+    ```
+
+Then, within your player.cpp file, add the following code right above the ADD_SIGNAL line that you just added in:
+
+    ```
+    ClassDB::bind_method(D_METHOD("_on_body_entered", "node"), 
+    &Player::_on_body_entered);
+    ```
+
+   
+1. Next, when you get to the next code block in the tutorial, add the following code to the very end of your player.cpp file:
+
+    ```
+    void Player::_on_body_entered(Node2D *node) {
+        hide();
+        get_node<CollisionShape2D>("CollisionShape2D")->set_deferred(
+            StringName("set_disabled"), true);
+        // Let listeners respond to hit
+        emit_signal("player_hit");
+    }
+    ```
+1. Finally, when you got to the last code block in this section, add the following code right below `~Player() = default;` within player.h:
+
+    ```
+    void start(Vector2 position);
+    ```
+
+    Next, add the following function above your `Player::_ready()` function within player.cpp:
+
+    ```
+    void Player::start(Vector2 position) {
+        set_position(position);
+        show();
+        get_node<CollisionShape2D>("CollisionShape2D")->set_disabled(false);
+    }
+    ```
+
+1. Rerun `scons platform=(your_os)`. If you'd like, you can temporarily comment out the `hide()` function you added in recently in order to make sure that your player is still moving around as expected. (By the way: check for any errors within the Debugger window at the bottom of the game engine window while you're running your game. The earlier you catch and address these, the better.)
+
+## Here with editing: 
+
+Next, add in C++ code for the [Creating the enemy](https://docs.godotengine.org/en/4.5/getting_started/first_2d_game/04.creating_the_enemy.html) section.
+
+## Notes to self:
+
+1. You may need to connect certain items to certain signals/methods. See j-dax's completed 4.3 game (including the screenshot below) and the documentation for reference. (I don't think you'll necessarily need to add GDScript files for this step, though.)
+
+
+
+![](Images/Player_signal_view_within_j_dax_project.png)

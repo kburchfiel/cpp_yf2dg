@@ -21,7 +21,7 @@ public:
     // signals
     void set_speed(const int);
     int get_speed() const;
-    //void _on_body_entered(Node2D *node);
+    void _on_body_entered(Node2D *node);
 
     // engine binding
     void _ready() override;

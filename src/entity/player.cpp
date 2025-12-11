@@ -14,11 +14,14 @@ void Player::_bind_methods() {
     ClassDB::bind_method(D_METHOD("set_speed", "speed"), &Player::set_speed);
     ADD_PROPERTY(PropertyInfo(Variant::INT, "speed"), "set_speed", "get_speed");
 
-    // // Hook this up
-    // ClassDB::bind_method(D_METHOD("_on_body_entered", "node"), &Player::_on_body_entered);
+    ClassDB::bind_method(D_METHOD("_on_body_entered", "node"), 
+    &Player::_on_body_entered);
 
-    // // the signal to emit when the player collides with a Mob
-    // ADD_SIGNAL(MethodInfo("player_hit"));
+    // The signal to emit when the player collides with a Mob
+    ADD_SIGNAL(MethodInfo("player_hit"));
+    // This code comes from j-dax's script, but a similar example
+    // can be found within
+    // https://docs.godotengine.org/en/4.5/tutorials/scripting/cpp/gdextension_cpp_example.html .
 }
 
 Player::Player() {
@@ -36,7 +39,7 @@ int Player::get_speed() const {
 void Player::start(Vector2 position) {
     set_position(position);
     show();
-//   get_node<CollisionShape2D>("CollisionShape2D")->set_disabled(false);
+    get_node<CollisionShape2D>("CollisionShape2D")->set_disabled(false);
 }
 
 void Player::_ready() {
@@ -45,9 +48,19 @@ void Player::_ready() {
     auto im = InputMap::get_singleton();
     im->load_from_project_settings();
 
-    start(get_position());
+    // Note: the following line isn't present within version 3.5
+    // of the C++ documentation--so it's possible that I won't
+    // need it within this version either.
+
+    //start(get_position());
 
     screen_size = get_viewport_rect().size;
+
+    // You may find it helpful to comment out the following line
+    // at times for debugging/testing purposes, especially 
+    // earlier in the tutorial.
+    hide();
+    // From https://docs.godotengine.org/en/3.5/getting_started/first_2d_game/03.coding_the_player.html
 }
 
 void Player::_process(double delta) {
@@ -68,6 +81,7 @@ void Player::_process(double delta) {
 
     auto animated_sprite_2d = Node::get_node<AnimatedSprite2D>(
         "AnimatedSprite2D");
+
     if (velocity.x != 0) {
         animated_sprite_2d->set_animation("walk");
         animated_sprite_2d->set_flip_v(false);
@@ -93,10 +107,10 @@ void Player::_process(double delta) {
     set_position(new_position);
 }
 
-// void Player::_on_body_entered(Node2D *node) {
-//     hide();
-//     get_node<CollisionShape2D>("CollisionShape2D")->set_deferred(
-//         StringName("set_disabled"), true);
-//     // let listeners respond to hit
-//     emit_signal("player_hit");
-//}
+void Player::_on_body_entered(Node2D *node) {
+    //hide();
+    get_node<CollisionShape2D>("CollisionShape2D")->set_deferred(
+        StringName("set_disabled"), true);
+    // Let listeners respond to hit
+    emit_signal("player_hit");
+}
