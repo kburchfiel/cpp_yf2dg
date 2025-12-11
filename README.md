@@ -464,6 +464,8 @@ Next, add in C++ code for the [Creating the enemy](https://docs.godotengine.org/
 
 1. You may need to connect certain items to certain signals/methods. See j-dax's completed 4.3 game (including the screenshot below) and the documentation for reference. (I don't think you'll necessarily need to add GDScript files for this step, though.)
 
+    ![](Images/Player_signal_view_within_j_dax_project.png)
 
+1. I *think* you might be able to connect these items as follows, as this approach produced the same output in 4.5 as the 4.3 screenshot above. (I'll find out for sure when I get to this part of the tutorial, though!)
 
-![](Images/Player_signal_view_within_j_dax_project.png)
+    ![](Images/signal_connection_test.png)
