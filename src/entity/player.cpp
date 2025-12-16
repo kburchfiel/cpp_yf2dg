@@ -49,7 +49,8 @@ void Player::_ready() {
     im->load_from_project_settings();
 
     // Note: the following line isn't present within version 3.5
-    // of the C++ documentation--so it's possible that I won't
+    // of the C++ code for the Your First 2D Game tutorial--
+    // so it's possible that I won't
     // need it within this version either.
 
     //start(get_position());

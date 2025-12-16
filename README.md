@@ -17,11 +17,23 @@ Note: this document, along with almost practically all of the code in this repos
 
 1. The [Getting started](https://docs.godotengine.org/en/4.5/tutorials/scripting/cpp/gdextension_cpp_example.html) page within Godot's godot-cpp documentation.
 
-1. [Version 3.5 of the YF2DG project](https://docs.godotengine.org/en/3.5/getting_started/first_2d_game/03.coding_the_player.html). (This was the most recent version of the 'Your First 2D Game documentation' to include C++ code examples.)
+1. [Version 3.5 of the YF2DG project](https://docs.godotengine.org/en/3.5/getting_started/first_2d_game/03.coding_the_player.html). (This was the most recent version of the 'Your First 2D Game documentation' to include C++ code examples. It proved very helpful in figuring out which sections of J-Dax's code to present for each corresponding code block.)
 
 1. The [godot-cpp-template](https://github.com/godotengine/godot-cpp-template?tab=Unlicense-1-ov-file#readme) repository
 
+This repository seeks to do two useful things with this code:
 
+1. It lays out the C++ code step by step, similar to how the official tutorial presents GDScript and C# code bit by bit. (This repository will also contain completed copies of each C++ file--but it can be tricky, and a bit intimidating, to use those finalized versions as learning aids.)
+
+1. It includes some updates to J-Dax's code that make it compatible with Godot 4.5.
+
+1. It contains some additional comments on the code and documentation that you might find helpful in your learning journey.
+
+A few other notes:
+
+1. I'm working within Linux Mint, but this guide ought to be helpful for other operating systems also.
+
+1. My personal reason for working on this project is that I want to learn how to code games entirely in C++ within Godot. This is *not* the recommended approach, as GDScript will often allow for faster coding and deployment; it's simply the method that I find the most interesting, though far from the most convenient (or rational!). 
 
 ## Steps:
 
@@ -219,7 +231,7 @@ Note: this document, along with almost practically all of the code in this repos
 
     Next, save the following file as /src/registry/register_types.cpp:
 
-    (Source: https://docs.godotengine.org/en/4.5/tutorials/scripting/cpp/gdextension_cpp_example.html)
+    (The following code is based largely on https://docs.godotengine.org/en/4.5/tutorials/scripting/cpp/gdextension_cpp_example.html .)
 
     ```
     #include "register_types.h"
@@ -419,13 +431,12 @@ Note: this document, along with almost practically all of the code in this repos
     void _on_body_entered(Node2D *node);
     ```
 
-Then, within your player.cpp file, add the following code right above the ADD_SIGNAL line that you just added in:
+    Then, within your player.cpp file, add the following code right above the ADD_SIGNAL line that you just added in:
 
     ```
     ClassDB::bind_method(D_METHOD("_on_body_entered", "node"), 
     &Player::_on_body_entered);
     ```
-
    
 1. Next, when you get to the next code block in the tutorial, add the following code to the very end of your player.cpp file:
 
@@ -438,6 +449,7 @@ Then, within your player.cpp file, add the following code right above the ADD_SI
         emit_signal("player_hit");
     }
     ```
+
 1. Finally, when you got to the last code block in this section, add the following code right below `~Player() = default;` within player.h:
 
     ```
@@ -456,9 +468,129 @@ Then, within your player.cpp file, add the following code right above the ADD_SI
 
 1. Rerun `scons platform=(your_os)`. If you'd like, you can temporarily comment out the `hide()` function you added in recently in order to make sure that your player is still moving around as expected. (By the way: check for any errors within the Debugger window at the bottom of the game engine window while you're running your game. The earlier you catch and address these, the better.)
 
-## Here with editing: 
+1. Next, once you get to the first code box within the [Creating the enemy](https://docs.godotengine.org/en/4.5/getting_started/first_2d_game/04.creating_the_enemy.html) section of the documentation, create two new files within your src/entity/folder: mob.cpp and mob.h. Copy and paste the following code into the mob.h file:
 
-Next, add in C++ code for the [Creating the enemy](https://docs.godotengine.org/en/4.5/getting_started/first_2d_game/04.creating_the_enemy.html) section.
+    ```
+    #pragma once
+
+    #include <godot_cpp/classes/rigid_body2d.hpp>
+    #include <godot_cpp/classes/animated_sprite2d.hpp>
+
+    using namespace godot;
+
+    class Mob : public RigidBody2D {
+        GDCLASS(Mob, RigidBody2D)
+
+    private:
+        static void _bind_methods();
+    public:
+        Mob();
+        ~Mob() = default;
+
+        void start(Vector2 position, float rotation);
+
+
+        //engine binding
+        void _ready() override;
+    };
+    ```
+
+    This code, if you haven't noticed already, is very similar to the corresponding code within player.h.
+
+1. Once you get to the second box (i.e. the one preceded by 'In _ready() we play the animation and randomly choose one of the three animation types:'), add the following code to mob.cpp:
+
+    ```
+    #include "mob.h"
+    #include <godot_cpp/classes/animated_sprite2d.hpp>
+
+
+    Mob::Mob() {}
+
+    void Mob::start(Vector2 position, float rotation) {
+        set_global_position(position);
+        auto direction = rotation + godot::Math::deg_to_rad(90.0);
+        direction += UtilityFunctions::randf_range(
+            godot::Math::deg_to_rad(-45.0), godot::Math::deg_to_rad(45.0));
+        set_global_rotation(direction);
+
+        auto velocity = Vector2(
+            UtilityFunctions::randf_range(150.0, 250.0), 0);
+        set_linear_velocity(velocity.rotated(direction));
+    }
+
+    void Mob::_ready() {
+    auto animated_sprite_2d = get_node<AnimatedSprite2D>(
+        "AnimatedSprite2D");
+    auto mob_types = animated_sprite_2d->get_sprite_frames(
+    )->get_animation_names();
+    animated_sprite_2d->play(mob_types[
+        UtilityFunctions::randi_range(0, mob_types.size()-1)]);
+
+    }
+
+
+    ```
+
+1. Finally, once you get to the last box (which follows the text 'Connect the screen_exited() signal of the VisibleOnScreenNotifier2D node to the Mob and add this code:'), go back to your mob.h file, then add the following code right below `void start(Vector2 position, float rotation);`:
+
+    ```
+    // signals
+    void _on_screen_leave();
+    ```
+
+1. You'll also need to make several additions to your mob.cpp code.
+
+    First, add the following line below `#include <godot_cpp/classes/animated_sprite2d.hpp>`:
+
+    ```
+    #include <godot_cpp/classes/visible_on_screen_notifier2d.hpp>
+    ```
+
+    Second, add the following code below `#include <godot_cpp/variant/utility_functions.hpp>`:
+
+    ```
+    void Mob::_bind_methods() {
+    ClassDB::bind_method(D_METHOD("_on_screen_leave"), &Mob::_on_screen_leave);
+    }
+    ``` 
+
+    Third, add the following code just above your `Mob::_ready()` function:
+
+    ```
+    void Mob::_on_screen_leave() {
+        queue_free();
+    }
+    ```
+
+    Fourth, expand your `Mob::_ready()` function by adding the following code just before the closing bracket:
+
+    ```
+        auto vosn = get_node<
+    VisibleOnScreenNotifier2D>("VisibleOnScreenNotifier2D");
+    if (!vosn->is_connected(
+        "screen_exited", Callable(this, "_on_screen_leave"))) {
+        vosn->connect("screen_exited", Callable(
+            this, "_on_screen_leave"));
+    }
+    ```
+
+1. Finally, you'll need to make several additions to register_types.cpp. First, after `#include "entity/player.h"`, add in:
+
+    ```
+    #include "entity/mob.h"
+    ```
+
+1. Next, after `GDREGISTER_RUNTIME_CLASS(Player);`, add in (you guessed it!):
+
+    ```
+    GDREGISTER_RUNTIME_CLASS(Mob);
+    ```
+
+1. Go ahead and compile your project once again. Note that, if you attempt to play the Mob scene within the Godot editor, you won't see anything within the game window--but that's to be expected, as subsequent code will allow us to view both enemies and our player in the same scene.
+
+## Here with editing:
+
+Next, begin adding in and testing code for the [main game scene](https://docs.godotengine.org/en/4.5/getting_started/first_2d_game/05.the_main_game_scene.html) section of the documentation.
 
 ## Notes to self:
 
@@ -466,6 +598,8 @@ Next, add in C++ code for the [Creating the enemy](https://docs.godotengine.org/
 
     ![](Images/Player_signal_view_within_j_dax_project.png)
 
-1. I *think* you might be able to connect these items as follows, as this approach produced the same output in 4.5 as the 4.3 screenshot above. (I'll find out for sure when I get to this part of the tutorial, though!)
+1. I *think* you might be able to connect these items as follows, as this approach produced the same output in 4.5 as the 4.3 screenshot above. (I'll find out for sure when I get to this part of the tutorial, though! There's a good chance that I didn't connect the signal to the right class.)
 
     ![](Images/signal_connection_test.png)
+
+1. Some of the code within Mob::start() resembles that in Main::_on_MobTimer_timeout() within version 3.5 of the YF2DG C++ documentation (https://docs.godotengine.org/en/3.5/getting_started/first_2d_game/05.the_main_game_scene.html). You might eventually want to move it over to your own copy of the `_on_mob_timer_timeout` code within main.cpp.
