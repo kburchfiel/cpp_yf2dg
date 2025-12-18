@@ -37,12 +37,14 @@ int Player::get_speed() const {
 }
 
 void Player::start(Vector2 position) {
+    UtilityFunctions::print("start() just got called within player.cpp.");
     set_position(position);
     show();
     get_node<CollisionShape2D>("CollisionShape2D")->set_disabled(false);
 }
 
 void Player::_ready() {
+    UtilityFunctions::print("_ready just got called within player.cpp.");
     // https://github.com/godotengine/godot/issues/74993
     // workaround available: in _ready
     auto im = InputMap::get_singleton();
@@ -53,18 +55,19 @@ void Player::_ready() {
     // so it's possible that I won't
     // need it within this version either.
 
-    //start(get_position());
+    start(get_position());
 
     screen_size = get_viewport_rect().size;
 
     // You may find it helpful to comment out the following line
     // at times for debugging/testing purposes, especially 
     // earlier in the tutorial.
-    hide();
+    //hide();
     // From https://docs.godotengine.org/en/3.5/getting_started/first_2d_game/03.coding_the_player.html
 }
 
 void Player::_process(double delta) {
+    //UtilityFunctions::print("Process just got called within player.cpp.");
     auto input = Input::get_singleton();
     auto velocity = Vector2(0, 0);
     if (input->is_action_pressed("move_up")) {
@@ -109,6 +112,7 @@ void Player::_process(double delta) {
 }
 
 void Player::_on_body_entered(Node2D *node) {
+    UtilityFunctions::print("on_body_entered() just got called within player.cpp.");
     //hide();
     get_node<CollisionShape2D>("CollisionShape2D")->set_deferred(
         StringName("set_disabled"), true);

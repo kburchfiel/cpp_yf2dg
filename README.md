@@ -588,9 +588,175 @@ A few other notes:
 
 1. Go ahead and compile your project once again. Note that, if you attempt to play the Mob scene within the Godot editor, you won't see anything within the game window--but that's to be expected, as subsequent code will allow us to view both enemies and our player in the same scene.
 
-## Here with editing:
+1. Next, we'll move on to the [Main game scene](https://docs.godotengine.org/en/4.5/getting_started/first_2d_game/05.the_main_game_scene.html) section of the documentation. Once you get to the first code block (e.g. the one preceded by " . . . choose the Mob scene we want to instance."), add the following code to a new file within your scene/ subfolder called main.h:
 
-Next, begin adding in and testing code for the [main game scene](https://docs.godotengine.org/en/4.5/getting_started/first_2d_game/05.the_main_game_scene.html) section of the documentation.
+    ```
+    #pragma once
+
+    #include <godot_cpp/classes/node.hpp>
+    #include <godot_cpp/classes/packed_scene.hpp>
+
+    using namespace godot;
+
+    class Main : public Node {
+        GDCLASS(Main, Node)
+
+    private:
+        Ref<PackedScene> mob_scene;
+        int score;
+
+        static void _bind_methods();
+    public:
+        Main();
+        ~Main() = default;
+
+        // engine bindings
+        Ref<PackedScene> get_mob_scene();
+        void set_mob_scene(Ref<PackedScene>);
+        void game_over();
+        void new_game();
+
+        // signal receivers
+        void _on_score_timer_timeout();
+        void _on_start_timer_timeout();
+        void _on_mob_timer_timeout();
+
+        // void _ready() override;
+    };
+    ```
+
+1. In addition, add the following
+to a new file called main.cpp:
+
+    ```
+    #include "main.h"
+    #include "entity/player.h"
+    #include "entity/mob.h"
+
+    #include <godot_cpp/core/property_info.hpp>
+    #include <godot_cpp/classes/audio_stream_player.hpp>
+    #include <godot_cpp/classes/engine.hpp>
+    #include <godot_cpp/classes/timer.hpp>
+    #include <godot_cpp/classes/marker2d.hpp>
+    #include <godot_cpp/classes/path_follow2d.hpp>
+    #include <godot_cpp/variant/utility_functions.hpp>
+
+    Main::Main() {
+        score = 0;
+    }
+
+    void Main::_bind_methods() {
+        ClassDB::bind_method(D_METHOD("get_mob_scene"), &Main::get_mob_scene);
+        ClassDB::bind_method(D_METHOD("set_mob_scene", "packed_scene"), &Main::set_mob_scene);
+        ADD_PROPERTY(PropertyInfo(Variant::OBJECT, "packed_scene", PROPERTY_HINT_RESOURCE_TYPE, "PackedScene"), "set_mob_scene", "get_mob_scene");
+
+        // // game start/end
+        // ClassDB::bind_method(D_METHOD("game_over"), &Main::game_over);
+        // ClassDB::bind_method(D_METHOD("new_game"), &Main::new_game);
+
+        // timers
+        ClassDB::bind_method(D_METHOD("_on_score_timer_timeout"), &Main::_on_score_timer_timeout);
+        ClassDB::bind_method(D_METHOD("_on_start_timer_timeout"), &Main::_on_start_timer_timeout);
+        ClassDB::bind_method(D_METHOD("_on_mob_timer_timeout"), &Main::_on_mob_timer_timeout);
+    }
+
+    Ref<PackedScene> Main::get_mob_scene() {
+        return mob_scene;
+    }
+
+    void Main::set_mob_scene(Ref<PackedScene> packed_scene) {
+        mob_scene = packed_scene;
+    }
+    ```
+
+1. Within register_types.cpp, add the following line under `#include "entity/mob.h"`:
+
+    ```
+    #include "scene/main.h"
+    ```
+1. Similarly, `under ClassDB::register_class<Mob>();`, add the following line:
+
+    ```
+    ClassDB::register_class<Main>();
+    ```
+
+1. Once you get to the next code block (i.e. the one that comes after the text "as well as a new_game function that will set everything up for a new game:"), add the following two functions to the end of your main.cpp file:
+
+
+    ```
+    void Main::game_over() {
+    get_node<Timer>("MobTimer")->stop();
+    get_node<Timer>("ScoreTimer")->stop();
+    }
+
+    void Main::new_game() {
+        score = 0;
+
+        auto player = get_node<Player>("Player");
+        auto start_position = get_node<Marker2D>("StartPosition");
+        player->start(start_position->get_position());
+
+        get_node<Timer>("StartTimer")->start();
+    }
+
+    In addition, add the following to the end of your `_bind_methods()` function within that same file:
+
+
+    ```
+    ClassDB::bind_method(D_METHOD("game_over"), &Main::game_over);
+    ClassDB::bind_method(D_METHOD("new_game"), &Main::new_game);
+    ```
+
+1. At the code block that follows "that ScoreTimer will increment the score by 1.", add the following two functions to your main.cpp file (right below your `new_game()` function):
+
+    ```
+    void Main::_on_score_timer_timeout() {
+        score++;
+    }
+
+    void Main::_on_start_timer_timeout() {
+        get_node<Timer>("MobTimer")->start();
+        get_node<Timer>("ScoreTimer")->start();
+    }
+    ```
+
+1. Then, at the following code block, add the following function below `_on_start_timer_timeout()`:
+
+    ```
+    void Main::_on_mob_timer_timeout() {
+    auto mob = reinterpret_cast<Mob*>(mob_scene->instantiate());
+
+    auto mob_spawn_location = get_node<PathFollow2D>("MobPath/MobSpawnLocation");
+    mob_spawn_location->set_progress_ratio(UtilityFunctions::randf());
+
+    Vector2 vec2 = mob_spawn_location->get_global_position();
+    float rotation = mob_spawn_location->get_global_rotation();
+    mob->start(vec2, rotation);
+
+    add_child(mob);
+    }
+    ```
+
+1. Finally, within the 'Testing the scene' code block, add the following code to the end of your Main class definition within main.h:
+
+    `void _ready() override;`
+
+    Next, add the following function at the end of main.cpp:
+
+    ```
+    void Main::_ready() {
+    new_game();
+    }
+    ```
+
+## Here with editing:
+Debug issues you're facing at this point (e.g. packed scene selection option isn't available within editor; player isn't moving; ready() doesn't appear to be called within main())
+
+## Issues to resolve:
+
+1. I'm not seeing a Packed Scene entry within the Inspector tab for the Main scene just yet--not sure why. (It's showing up within J-Dax's example.)
+
+2. I still need to figure out what steps, if any, I need to do to connect signals to other items within the editor. (It's possible that I can take care of all of these steps within the code, but I'm not sure. This would be a good thing to ask about online.)
 
 ## Notes to self:
 
