@@ -750,7 +750,7 @@ to a new file called main.cpp:
     ```
 
 ## Here with editing:
-Debug issues you're facing at this point (e.g. packed scene selection option isn't available within editor; player isn't moving; ready() doesn't appear to be called within main())
+Debug issues you're facing at this point (e.g. packed scene selection option isn't available within editor; ready() doesn't appear to be called within main())
 
 ## Issues to resolve:
 
