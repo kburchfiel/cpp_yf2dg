@@ -62,7 +62,7 @@ void Player::_ready() {
     // You may find it helpful to comment out the following line
     // at times for debugging/testing purposes, especially 
     // earlier in the tutorial.
-    //hide();
+    hide();
     // From https://docs.godotengine.org/en/3.5/getting_started/first_2d_game/03.coding_the_player.html
 }
 
@@ -113,7 +113,7 @@ void Player::_process(double delta) {
 
 void Player::_on_body_entered(Node2D *node) {
     UtilityFunctions::print("on_body_entered() just got called within player.cpp.");
-    //hide();
+    hide();
     get_node<CollisionShape2D>("CollisionShape2D")->set_deferred(
         StringName("set_disabled"), true);
     // Let listeners respond to hit

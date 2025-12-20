@@ -21,13 +21,13 @@ Note: this document, along with almost practically all of the code in this repos
 
 1. The [godot-cpp-template](https://github.com/godotengine/godot-cpp-template?tab=Unlicense-1-ov-file#readme) repository
 
-This repository seeks to do two useful things with this code:
+This repository seeks to build on these resources by:
 
-1. It lays out the C++ code step by step, similar to how the official tutorial presents GDScript and C# code bit by bit. (This repository will also contain completed copies of each C++ file--but it can be tricky, and a bit intimidating, to use those finalized versions as learning aids.)
+1. Laying out the C++ code step by step, similar to how the official tutorial presents GDScript and C# code bit by bit. (This repository will also contain completed copies of each C++ file--but it can be tricky, and a bit intimidating, to use those finalized versions as learning aids.)
 
-1. It includes some updates to J-Dax's code that make it compatible with Godot 4.5.
+1. Incorporating a few updates to J-Dax's code that make it compatible with Godot 4.5.
 
-1. It contains some additional comments on the code and documentation that you might find helpful in your learning journey.
+1. Adding some additional comments on the code and documentation that you might find helpful in your learning journey (especially if you're a relative beginner to Godot or GDExtension).
 
 A few other notes:
 
@@ -48,9 +48,9 @@ A few other notes:
     
 1. Once you get to the [Coding the player](https://docs.godotengine.org/en/4.5/getting_started/first_2d_game/03.coding_the_player.html) page, you'll be able to begin adding C++ to your game!
 
-1. **Coding the player section**
+    **A quick note:** The documentation will instruct you to add pre-existing nodes to your scene, then link GDScript files to them. However, when using GDExtension, you'll instead need to define your class within your C++ code, *then* add an instance of that class to your project file. (Simply adding a new node, then renaming it as the same name as your class, won't suffice. This will seem obvious to most of you, but I spent more debugging time than I'd like to admit because, later in this project, I renamed an existing node 'Main' instead of importing my custom Main class into a scene.)
 
-    First, copy your compiled godot-cpp folder into your root folder. [Since this folder was around 196 MB in size, I imagine there's a way to avoid directly copying it--but this approach will work for now.] Also add a src/ folder. Your directory should now have the following structure:
+1. First, copy your compiled godot-cpp folder into your root folder. [Since this folder was around 196 MB in size, I imagine there's a way to avoid directly copying it--but this approach will work for now.] Also add a src/ folder. Your directory should now have the following structure:
 
         cpp_yf2dg/
         ----project/    
@@ -330,7 +330,7 @@ A few other notes:
 
     ```
 
-1. Open a terminal; navigate to your root folder (i.e. the one that contains your 'godot-cpp', 'src', and 'project' folders); and run `scons platform=linux` (replacing the OS with your own OS as needed).
+1. Open a terminal; navigate to your root folder (i.e. the one that contains your 'godot-cpp', 'src', and 'project' folders); and run `scons platform=linux` (replacing the OS with your own OS as needed). (You may also be able to run `scons` on its own without having to mention your OS name.)
 
 1. Navigate to your new /project/bin folder; create a new file named gdexample.gdextension; and then add the following code to it:
 
@@ -425,7 +425,7 @@ A few other notes:
 
 1. After rerunning `scons platform=(your_os)`, exit and relaunch Godot. You should now see a `player_hit()` signal within a new Player entry at the top of your Signals panel. (See the official documentation for more details.)
 
-1. You can skip the Connect --> Connect a Signal entry. Instead, navigate down to the following code block. Then, within player.h, add the following line right after `int get_speed() const;`:
+1. You can skip the Connect --> Connect a Signal entry for now. (We'll perform this step after a prerequisite code update.) Instead, navigate down to the following code block. Then, within player.h, add the following line right after `int get_speed() const;`:
 
     ```
     void _on_body_entered(Node2D *node);
@@ -438,7 +438,7 @@ A few other notes:
     &Player::_on_body_entered);
     ```
    
-1. Next, when you get to the next code block in the tutorial, add the following code to the very end of your player.cpp file:
+1. When you get to the next code block in the tutorial, add the following code to the very end of your player.cpp file:
 
     ```
     void Player::_on_body_entered(Node2D *node) {
@@ -449,6 +449,21 @@ A few other notes:
         emit_signal("player_hit");
     }
     ```
+
+1. The standard, GDScript-based method of connecting signals involves (not surprisingly) some GDScript. However, we don't have to use any GDScript with our C++-based approach. Instead, when you get to the Connect --> Connect a Signal entry, perform the following steps:
+
+    Select the Player entry within the Main scene's node tree, then double-click on the `body_entered(body: Node2D)` signal within the Player section of its Signals tab. In this box, click on the Player node (since that class is the one that contains the _on_body_entered() function); replace any existing text in the Receiver Method box with `_on_body_entered` (not `_on_body_entered()`); and click 'Connect.'
+
+    ![](Images/connecting_signal_1.png)
+
+    If all goes well, you should then see `. :: on_body_entered()` below `player_hit()` in the Signals menu:
+
+    ![](Images/connected_signal_1.png)
+
+    (The single dot signifies that `_on_body_entered()` is part of the Player class.)
+
+    If you instead see a 'Cannot connect signal' message, make sure that `_on_body_entered()` is indeed present within your player.cpp code--and that the Player node within your Player scene is indeed an instance of your custom-defined Player class.
+
 
 1. Finally, when you got to the last code block in this section, add the following code right below `~Player() = default;` within player.h:
 
@@ -513,19 +528,32 @@ A few other notes:
             godot::Math::deg_to_rad(-45.0), godot::Math::deg_to_rad(45.0));
         set_global_rotation(direction);
 
+        // Note: the following six lines were originally present within
+        // Mob::_ready(); however, I found that no animations appeared
+        // when they were stored there. Moving them to Mob::start()
+        // resolved this issue.
+
+        auto animated_sprite_2d = get_node<AnimatedSprite2D>(
+            "AnimatedSprite2D");
+        auto mob_types = animated_sprite_2d->get_sprite_frames(
+        )->get_animation_names();
+        animated_sprite_2d->play(mob_types[
+            UtilityFunctions::randi_range(0, mob_types.size()-1)]);
+
         auto velocity = Vector2(
             UtilityFunctions::randf_range(150.0, 250.0), 0);
         set_linear_velocity(velocity.rotated(direction));
     }
 
     void Mob::_ready() {
-    auto animated_sprite_2d = get_node<AnimatedSprite2D>(
-        "AnimatedSprite2D");
-    auto mob_types = animated_sprite_2d->get_sprite_frames(
-    )->get_animation_names();
-    animated_sprite_2d->play(mob_types[
-        UtilityFunctions::randi_range(0, mob_types.size()-1)]);
 
+        auto vosn = get_node<
+        VisibleOnScreenNotifier2D>("VisibleOnScreenNotifier2D");
+        if (!vosn->is_connected(
+            "screen_exited", Callable(this, "_on_screen_leave"))) {
+            vosn->connect("screen_exited", Callable(
+                this, "_on_screen_leave"));
+        }
     }
 
 
@@ -650,9 +678,6 @@ to a new file called main.cpp:
         ClassDB::bind_method(D_METHOD("set_mob_scene", "packed_scene"), &Main::set_mob_scene);
         ADD_PROPERTY(PropertyInfo(Variant::OBJECT, "packed_scene", PROPERTY_HINT_RESOURCE_TYPE, "PackedScene"), "set_mob_scene", "get_mob_scene");
 
-        // // game start/end
-        // ClassDB::bind_method(D_METHOD("game_over"), &Main::game_over);
-        // ClassDB::bind_method(D_METHOD("new_game"), &Main::new_game);
 
         // timers
         ClassDB::bind_method(D_METHOD("_on_score_timer_timeout"), &Main::_on_score_timer_timeout);
@@ -680,7 +705,7 @@ to a new file called main.cpp:
     ClassDB::register_class<Main>();
     ```
 
-1. Once you get to the next code block (i.e. the one that comes after the text "as well as a new_game function that will set everything up for a new game:"), add the following two functions to the end of your main.cpp file:
+1. For now, skip the signal connection steps discussed in the text that follows this box. Once you get to the next code block (i.e. the one that comes after the text "as well as a new_game function that will set everything up for a new game:"), add the following two functions to the end of your main.cpp file:
 
 
     ```
@@ -706,6 +731,18 @@ to a new file called main.cpp:
     ClassDB::bind_method(D_METHOD("game_over"), &Main::game_over);
     ClassDB::bind_method(D_METHOD("new_game"), &Main::new_game);
     ```
+
+1. Now that we've added a game_over() function, we can pass this to the signal connection box in the editor. Go to the Player entry within the Main scene's node tree, then ouble-click on the `player_hit()` signal within the Player section of its Signals tab. In this box, click on the Main node (since that class is the one that contains the game_over() function); replace any existing text in the Receiver Method box with 'game_over' (not game_over()); and click 'Connect.'
+
+    ![](Images/connecting_signal_2.png)
+
+    You should then see `.. :: game_over()` below `player_hit()` in the Signals menu:
+
+    ![](Images/connected_signal_2.png)
+
+    (The double dots signify that `game_over()` is part of the class that contains the Player class--in this case, the Main class.)
+
+1. As usual, skip the signal connection steps that follow this code block for now--as we'll need to define certain functions in our code on which they depend before we can add in those connections.
 
 1. At the code block that follows "that ScoreTimer will increment the score by 1.", add the following two functions to your main.cpp file (right below your `new_game()` function):
 
@@ -737,6 +774,8 @@ to a new file called main.cpp:
     }
     ```
 
+1. Now that you've added functions that explain what to do when a given timer runs out, you can go ahead and add `_on_mob_timer_timeout()` to the MobTimer's timeout() signal; `_on_score_timer_timeout()` to the ScoreTimer's timeout() signal; and `_on_start_timer_timeout()` to the StartTimer's timeout() signal. In each case, you'll need to select Main as the node to which to connect.
+
 1. Finally, within the 'Testing the scene' code block, add the following code to the end of your Main class definition within main.h:
 
     `void _ready() override;`
@@ -750,22 +789,9 @@ to a new file called main.cpp:
     ```
 
 ## Here with editing:
-Debug issues you're facing at this point (e.g. packed scene selection option isn't available within editor; ready() doesn't appear to be called within main())
+Continue adding C++ code for the Heads up display section of YF2DG.
 
-## Issues to resolve:
 
-1. I'm not seeing a Packed Scene entry within the Inspector tab for the Main scene just yet--not sure why. (It's showing up within J-Dax's example.)
-
-2. I still need to figure out what steps, if any, I need to do to connect signals to other items within the editor. (It's possible that I can take care of all of these steps within the code, but I'm not sure. This would be a good thing to ask about online.)
-
-## Notes to self:
-
-1. You may need to connect certain items to certain signals/methods. See j-dax's completed 4.3 game (including the screenshot below) and the documentation for reference. (I don't think you'll necessarily need to add GDScript files for this step, though.)
-
-    ![](Images/Player_signal_view_within_j_dax_project.png)
-
-1. I *think* you might be able to connect these items as follows, as this approach produced the same output in 4.5 as the 4.3 screenshot above. (I'll find out for sure when I get to this part of the tutorial, though! There's a good chance that I didn't connect the signal to the right class.)
-
-    ![](Images/signal_connection_test.png)
+## Note(s) to self:
 
 1. Some of the code within Mob::start() resembles that in Main::_on_MobTimer_timeout() within version 3.5 of the YF2DG C++ documentation (https://docs.godotengine.org/en/3.5/getting_started/first_2d_game/05.the_main_game_scene.html). You might eventually want to move it over to your own copy of the `_on_mob_timer_timeout` code within main.cpp.

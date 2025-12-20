@@ -18,6 +18,18 @@ void Mob::start(Vector2 position, float rotation) {
         godot::Math::deg_to_rad(-45.0), godot::Math::deg_to_rad(45.0));
     set_global_rotation(direction);
 
+    // Note: the following six lines were originally present within
+    // Mob::_ready(); however, I found that no animations appeared
+    // when they were stored there. Moving them to Mob::start()
+    // resolved this issue.
+
+    auto animated_sprite_2d = get_node<AnimatedSprite2D>(
+        "AnimatedSprite2D");
+    auto mob_types = animated_sprite_2d->get_sprite_frames(
+    )->get_animation_names();
+    animated_sprite_2d->play(mob_types[
+        UtilityFunctions::randi_range(0, mob_types.size()-1)]);
+
     auto velocity = Vector2(
         UtilityFunctions::randf_range(150.0, 250.0), 0);
     set_linear_velocity(velocity.rotated(direction));
@@ -28,12 +40,6 @@ void Mob::_on_screen_leave() {
 }
 
 void Mob::_ready() {
-    auto animated_sprite_2d = get_node<AnimatedSprite2D>(
-        "AnimatedSprite2D");
-    auto mob_types = animated_sprite_2d->get_sprite_frames(
-    )->get_animation_names();
-    animated_sprite_2d->play(mob_types[
-        UtilityFunctions::randi_range(0, mob_types.size()-1)]);
 
     auto vosn = get_node<
     VisibleOnScreenNotifier2D>("VisibleOnScreenNotifier2D");
