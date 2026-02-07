@@ -1,6 +1,6 @@
 # Attempt to get J-Dax's Godot 4.3 Your First 2D Game C++ code working within Godot 4.5
 
-(A work in progress)
+[NOTE: I am now continuing this project with Godot 4.6, so I don't plan to update this repository further unless I encounter issues with the current version of 4.6. You can find my 4.6-specific repository here: https://github.com/kburchfiel/cpp_yf2dg_gd_4pt_6 ]
 
 Practically all of the code in this repository comes from one of the following sources:
 
@@ -732,7 +732,7 @@ to a new file called main.cpp:
     ClassDB::bind_method(D_METHOD("new_game"), &Main::new_game);
     ```
 
-1. Now that we've added a game_over() function, we can pass this to the signal connection box in the editor. Go to the Player entry within the Main scene's node tree, then ouble-click on the `player_hit()` signal within the Player section of its Signals tab. In this box, click on the Main node (since that class is the one that contains the game_over() function); replace any existing text in the Receiver Method box with 'game_over' (not game_over()); and click 'Connect.'
+1. Now that we've added a game_over() function, we can pass this to the signal connection box in the editor. Go to the Player entry within the Main scene's node tree, then double-click on the `player_hit()` signal within the Player section of its Signals tab. In this box, click on the Main node (since that class is the one that contains the game_over() function); replace any existing text in the Receiver Method box with 'game_over' (not game_over()); and click 'Connect.'
 
     ![](Images/connecting_signal_2.png)
 
@@ -788,8 +788,11 @@ to a new file called main.cpp:
     }
     ```
 
-## Here with editing:
-Continue adding C++ code for the Heads up display section of YF2DG.
+1. You also need to tell the editor to associate your Packed Scene property (which you added in your C++ code) with the mob.tscn scene. Otherwise--as I found out the hard way--the game will crash once it attempts to run `auto mob = reinterpret_cast<Mob*>(mob_scene->instantiate());` within main.cpp. 
+
+    To take care of this step, click on the Main node within your main.tscn scene; navigate to the Packed Scene row within your Inspector; and select mob.tscn as the scene to open.
+
+1. Try playing the Main scene again. You should now see mob characters appear from different directions after _on_mob_timer_timeout() gets called.
 
 
 ## Note(s) to self:

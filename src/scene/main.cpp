@@ -98,7 +98,7 @@ void Main::_on_start_timer_timeout() {
 void Main::_on_mob_timer_timeout() {
     UtilityFunctions::print("_on_mob_timer_timeout just got called within main.cpp.");
     auto mob = reinterpret_cast<Mob*>(mob_scene->instantiate());
-
+    UtilityFunctions::print("reinterpret_cast<Mob*> just got called within main.cpp.");
     auto mob_spawn_location = get_node<PathFollow2D>("MobPath/MobSpawnLocation");
     mob_spawn_location->set_progress_ratio(UtilityFunctions::randf());
 
